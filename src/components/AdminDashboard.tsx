@@ -9,6 +9,9 @@ export function AdminDashboard() {
   
   // Admin Login State
   const [currentAdmin, setCurrentAdmin] = useState<string | null>(null);
+  const [selectedAdminId, setSelectedAdminId] = useState<string>('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
   
   // Raw logs & Teachers state
   const [rawLogsList, setRawLogsList] = useState<any[]>([]);
@@ -16,9 +19,9 @@ export function AdminDashboard() {
   const [loadingData, setLoadingData] = useState(false);
 
   const ADMINS = [
-    { id: 'admin1', name: 'Principal Smith' },
-    { id: 'admin2', name: 'Vice Principal Doe' },
-    { id: 'admin3', name: 'HR Director Lee' }
+    { id: 'admin1', name: 'Principal', password: 'admin' },
+    { id: 'admin2', name: 'Vice Principal', password: 'admin' },
+    { id: 'admin3', name: 'Director', password: 'admin' }
   ];
 
   // Fetch data to display initially
@@ -145,22 +148,62 @@ export function AdminDashboard() {
     }
   };
 
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    const admin = ADMINS.find(a => a.id === selectedAdminId);
+    if (!admin) {
+      setLoginError('Please select an admin account.');
+      return;
+    }
+    if (admin.password !== password) {
+      setLoginError('Incorrect password.');
+      return;
+    }
+    setCurrentAdmin(admin.name);
+  };
+
   if (!currentAdmin) {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-6">
         <div className="bg-slate-800/80 backdrop-blur border border-slate-700/50 p-8 rounded-2xl shadow-xl w-full max-w-md">
           <h2 className="text-2xl font-bold mb-6 text-center text-white">Admin Login</h2>
-          <div className="space-y-4">
-            {ADMINS.map(admin => (
-              <button
-                key={admin.id}
-                onClick={() => setCurrentAdmin(admin.name)}
-                className="w-full bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl font-medium transition-colors border border-slate-600"
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold tracking-wider text-slate-400 uppercase">Select Role</label>
+              <select 
+                value={selectedAdminId}
+                onChange={(e) => setSelectedAdminId(e.target.value)}
+                className="w-full bg-slate-900 border-2 border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors cursor-pointer"
+                required
               >
-                Log in as {admin.name}
-              </button>
-            ))}
-          </div>
+                <option value="" disabled>Choose your admin account...</option>
+                {ADMINS.map(admin => (
+                  <option key={admin.id} value={admin.id}>
+                    Log in as {admin.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold tracking-wider text-slate-400 uppercase">Password</label>
+              <input 
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-slate-900 border-2 border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
+                required
+              />
+            </div>
+            {loginError && <p className="text-red-400 text-sm font-medium">{loginError}</p>}
+            <button
+              type="submit"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold transition-colors shadow-lg mt-2"
+            >
+              Access Dashboard
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -184,7 +227,11 @@ export function AdminDashboard() {
               <span>{loading ? 'Analyzing...' : 'Generate AI Report'}</span>
             </button>
             <button 
-              onClick={() => setCurrentAdmin(null)}
+              onClick={() => {
+                setCurrentAdmin(null);
+                setPassword('');
+                setSelectedAdminId('');
+              }}
               className="bg-slate-700 hover:bg-slate-600 px-6 py-3 rounded-xl font-medium transition-all shadow-lg"
             >
               Log Out

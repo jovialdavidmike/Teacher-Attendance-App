@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { db } from '../firebase';
 import { collection, getDocs, doc, setDoc, addDoc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { Geolocation } from '@capacitor/geolocation';
+import { verifyLocation } from '../lib/location';
 
 interface Teacher {
   id: string;
@@ -92,6 +94,34 @@ export function SignInPortal() {
     if (!selectedTeacherId) return;
 
     try {
+      if (action === 'Sign-In') {
+        try {
+          const position = await Geolocation.getCurrentPosition();
+          
+          // Example school location
+          const adminLat = 40.7128;
+          const adminLng = -74.0060;
+          const radius = 200;
+
+          const isValid = verifyLocation(
+            position.coords.latitude,
+            position.coords.longitude,
+            adminLat,
+            adminLng,
+            radius
+          );
+
+          if (!isValid) {
+            showToast("You are not on school premises");
+            return;
+          }
+        } catch (err) {
+          console.error("Location error", err);
+          showToast("Unable to verify your location. Please check your GPS settings.");
+          return;
+        }
+      }
+
       const teacherRef = doc(db, 'Teachers', selectedTeacherId);
       
       // Update Teachers collection
