@@ -48,7 +48,7 @@ export function AdminDashboard() {
         const teacherCache: Record<string, string> = {};
         
         teachersSnapshot.forEach(tDoc => {
-          const t = { id: tDoc.id, ...tDoc.data() };
+          const t: any = { id: tDoc.id, ...tDoc.data() };
           teachersData.push(t);
           teacherCache[t.id] = t.Name;
         });
@@ -59,8 +59,14 @@ export function AdminDashboard() {
         const enrichedLogs = [];
         for (const log of rawLogs) {
           let dateString = "Unknown Time";
+          let isLate = false;
           if (log.Timestamp?.toDate) {
-            dateString = log.Timestamp.toDate().toLocaleString();
+            const date = log.Timestamp.toDate();
+            dateString = date.toLocaleString();
+            // Check if sign-in is after school start time (e.g., 08:00 AM)
+            if (log.Action === 'Sign-In' && date.getHours() >= 8) {
+              isLate = true;
+            }
           }
 
           enrichedLogs.push({
@@ -68,7 +74,8 @@ export function AdminDashboard() {
             TeacherName: teacherCache[log.TeacherID] || 'Unknown Teacher',
             Action: log.Action,
             Timestamp: dateString,
-            LatenessReason: log.LatenessReason || null
+            LatenessReason: log.LatenessReason || null,
+            IsLate: isLate
           });
         }
         
@@ -281,7 +288,7 @@ export function AdminDashboard() {
               ) : (
                 <div className="divide-y divide-slate-700/50">
                   {rawLogsList.map((log) => (
-                    <div key={log.id} className="p-4 hover:bg-slate-700/30 transition-colors">
+                    <div key={log.id} className={`p-4 transition-colors ${log.IsLate ? 'bg-red-500/10 hover:bg-red-500/20' : 'hover:bg-slate-700/30'}`}>
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-medium text-white">{log.TeacherName}</p>
