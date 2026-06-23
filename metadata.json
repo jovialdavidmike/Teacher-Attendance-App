@@ -1,0 +1,6 @@
+{
+  "name": "Teacher Attendance App",
+  "description": "A teacher sign-in portal and attendance tracking dashboard using Firebase and Gemini.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
